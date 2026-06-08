@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useChatStore } from "@/store/chat-store";
 
 export function ChatInput() {
+  const router = useRouter();
   const [input, setInput] = useState("");
   const isLoading = useChatStore((s) => s.isLoading);
   const sendMessage = useChatStore((s) => s.sendMessage);
@@ -17,7 +19,10 @@ export function ChatInput() {
 
     const message = input;
     setInput("");
-    await sendMessage(message);
+    const newSessionId = await sendMessage(message);
+    if (newSessionId) {
+      router.replace(`/chat/${newSessionId}`);
+    }
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {

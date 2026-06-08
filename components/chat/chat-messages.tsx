@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { MessageBubble } from "@/components/chat/message-bubble";
 import { useChatStore } from "@/store/chat-store";
 import { Loader2 } from "lucide-react";
@@ -12,15 +13,28 @@ const EXAMPLE_PROMPTS = [
 ];
 
 export function ChatMessages() {
+  const router = useRouter();
   const messages = useChatStore((s) => s.messages);
   const isLoading = useChatStore((s) => s.isLoading);
+  const isLoadingSession = useChatStore((s) => s.isLoadingSession);
   const error = useChatStore((s) => s.error);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  async function handleExamplePrompt(prompt: string) {
+    const newSessionId = await sendMessage(prompt);
+    if (newSessionId) {
+      router.replace(`/chat/${newSessionId}`);
+    }
+  }
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  if (isLoadingSession) {
+    return null;
+  }
 
   if (messages.length === 0) {
     return (
@@ -39,7 +53,7 @@ export function ChatMessages() {
             <button
               key={prompt}
               type="button"
-              onClick={() => sendMessage(prompt)}
+              onClick={() => void handleExamplePrompt(prompt)}
               disabled={isLoading}
               className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-left text-sm text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-50"
             >
